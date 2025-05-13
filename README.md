@@ -11,6 +11,8 @@ Flexible, efficient, and powerful logging with file rotation, JSON/text modes, a
 
 ## 📦 Installation
 
+**Go to [PyPi](https://pypi.org/project/loggingutil/) or run:**
+
 ```bash
 pip install loggingutil
 ```
