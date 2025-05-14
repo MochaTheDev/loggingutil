@@ -36,12 +36,12 @@ pip install loggingutil
 - Custom log levels and formatters
 
 ```python
-from loggingutil import LogFile
+from loggingutil import LogFile, LogLevel
 
 log = LogFile(filename="mylog.log", mode="text")
 
 log.log("System initialized.")
-log.log("Something went wrong!", level=log.error)
+log.log("Something went wrong!", level=LogLevel.ERROR)
 log.flush()
 ```
 

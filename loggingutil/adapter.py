@@ -1,4 +1,5 @@
 import logging
+from loggingutil import LogLevel
 
 class LoggingUtilHandler(logging.Handler):
     def __init__(self, logfile_instance):
@@ -9,11 +10,11 @@ class LoggingUtilHandler(logging.Handler):
         try:
             msg = self.format(record)
             level_map = {
-                logging.INFO: self.logfile.info,
-                logging.WARNING: self.logfile.warn,
-                logging.ERROR: self.logfile.error,
-                logging.CRITICAL: self.logfile.fatal,
-                logging.DEBUG: self.logfile.debug
+                logging.INFO: LogLevel.INFO,
+                logging.WARNING: LogLevel.WARN,
+                logging.ERROR: LogLevel.ERROR,
+                logging.CRITICAL: LogLevel.FATAL,
+                logging.DEBUG: LogLevel.DEBUG
             }
             level = level_map.get(record.levelno, self.logfile.info)
             self.logfile.log(msg, level=level, tag=record.name)
