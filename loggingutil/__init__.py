@@ -1,3 +1,4 @@
+# DEPENDENCIES
 import os
 import gzip
 import json
@@ -5,6 +6,19 @@ import asyncio
 import traceback
 from datetime import datetime, timedelta
 from typing import Union, Callable, Optional
+from enum import Enum, auto
+
+# LEVEL CLASS
+
+class LogLevel(Enum):
+    INFO = auto()
+    WARN = auto()
+    ERROR = auto()
+    FATAL = auto()
+    DEBUG = auto()
+    NOTICE = auto()
+
+# MAIN CLASS
 
 class LogFile:
     """Creates the LogFile object for logging. (eg. logs = loggingutil.LogFile(...))"""
@@ -33,34 +47,10 @@ class LogFile:
         self.external_stream = external_stream
         self.buffer = []
         self.buffer_limit = 5
-        self.level = self.info
+        self.level = LogLevel.INFO
 
         self.loadfile()
         self.cleanup_old_logs()
-    
-    @property
-    def info(self):
-        return 1
-    
-    @property
-    def warn(self):
-        return 2
-
-    @property
-    def error(self):
-        return 3
-    
-    @property
-    def fatal(self):
-        return 4
-    
-    @property
-    def debug(self):
-        return 5
-
-    @property
-    def notice(self):
-        return 6
 
     def _print(self, msg):
         if self.verbose:
@@ -75,24 +65,14 @@ class LogFile:
     
     def setLevel(self, level):
         """Sets default output level (used if no level passed to .log()) Example:\nsetLevel(logfile = loggingutil.LogFile(); logfile.setLevel(logfile.notice))"""
-        acceptable = [self.fatal, self.info, self.notice, self.debug, self.error, self.warn]
-        if level in acceptable:
+        if isinstance(level, LogLevel):
             self.level = level
     
     def getLevel(self):
         return self.level
 
-    def levelEquiv(self, value):
-        levels = {
-                1:"INFO",
-                2:"WARN",
-                3:"ERROR",
-                4:"FATAL",
-                5:"DEBUG",
-                6:"NOTICE"
-            }
-        
-        return levels[value]
+    def levelEquiv(self, level):
+        return level.name if isinstance(level, LogLevel) else str(level)
 
     def _rotate_if_needed(self):
         if os.path.exists(self.filename) and os.path.getsize(self.filename) >= self.max_size:
@@ -123,11 +103,11 @@ class LogFile:
         now = datetime.utcnow() if self.use_utc else datetime.now()
         return now.strftime(self.timestamp_format) if self.include_timestamp else ""
 
-    def _format_entry(self, data, tag, level: Callable = None):
+    def _format_entry(self, data, tag, level: LogLevel = None):
         if level:
-            e_level = self.levelEquiv(level)
+            e_level = self.levelEquiv(level or self.getLevel())
         else:
-            e_level = self.getLevel()
+            e_level = self.levelEquiv(self.getLevel())
         if self.custom_formatter:
             return self.custom_formatter(data, level, tag)
         timestamp = self._get_timestamp()
@@ -150,11 +130,13 @@ class LogFile:
         if self.external_stream:
             self.external_stream(entry.strip())
 
-    def log(self, data, level: Callable = None, tag=None):
+    def log(self, data, level: LogLevel = None, tag=None):
         """Log given data to the set log file."""
-        if level == None : level = self.getLevel()
+        if level is None:
+            level = self.getLevel()
+
         if not data:
-            return "No data provided"
+            raise ValueError("No data provided")
         entry = self._format_entry(data, tag=tag, level=level)
         self.buffer.append(entry)
         if len(self.buffer) >= self.buffer_limit:
@@ -162,17 +144,22 @@ class LogFile:
 
     def flush(self):
         """Clears the buffer and dumps current buffer data to log file."""
+        if not self.buffer:
+            return
+        
         for entry in self.buffer:
             self._write(entry)
         self.buffer.clear()
         self._print("Buffer flushed to file.")
 
-    async def async_log(self, data, level: Callable = None, tag=None):
-        if level == None : level = self.getLevel()
+    async def async_log(self, data, level: LogLevel = None, tag=None):
+        if level is None:
+            level = self.getLevel()
+
         """Coroutine log function"""
         self.log(data, level, tag)
 
-    async def async_log_http_response(self, resp, level: Callable = None, tag="HTTP"):
+    async def async_log_http_response(self, resp, level: LogLevel = None, tag="HTTP"):
         """Log HTTP responses from APIs"""
         if level == None : level = self.getLevel()
         try:
@@ -189,10 +176,11 @@ class LogFile:
         """For logging specifically exceptions as errors."""
         tb = traceback.format_exc()
         data = {"error": str(err), "traceback": tb}
-        self.log(data, level=self.error, tag=tag)
+        self.log(data, level=LogLevel.ERROR, tag=tag)
 
     def wipe(self):
         """Completely clear the log file."""
+        self.flush()
         with open(self.filename, 'w'):
             pass
         self._print(f"File {self.filename} has been wiped.")
@@ -204,3 +192,9 @@ class LogFile:
         self.flush()
         if exc_type:
             self.log_exception(exc_val)
+    
+    def __repr__(self):
+        return f"<LogFile filename='{self.filename}' mode='{self.mode}' level='{self.levelEquiv(self.getLevel())}'>"
+
+    def __str__(self):
+        return f"LogFile({self.filename})"
