@@ -51,6 +51,30 @@ class LogFile:
 
         self.loadfile()
         self.cleanup_old_logs()
+    
+    @property
+    def info(self):
+        return LogLevel.INFO
+
+    @property
+    def warn(self):
+        return LogLevel.WARN
+
+    @property
+    def error(self):
+        return LogLevel.ERROR
+
+    @property
+    def fatal(self):
+        return LogLevel.FATAL
+
+    @property
+    def debug(self):
+        return LogLevel.DEBUG
+
+    @property
+    def notice(self):
+        return LogLevel.NOTICE
 
     def _print(self, msg):
         if self.verbose:
