@@ -10,6 +10,8 @@ class TestLoggingUtil(unittest.TestCase):
     def setUp(self):
         self.test_file = "test.log"
         self.logger = LogFile(self.test_file)
+        with open(self.test_file, "r") as f:
+            f.readline()
 
     def tearDown(self):
         if os.path.exists(self.test_file):
@@ -21,6 +23,7 @@ class TestLoggingUtil(unittest.TestCase):
         self.logger.log(test_message)
 
         with open(self.test_file, "r") as f:
+            f.readline()
             log_line = f.readline()
             log_data = json.loads(log_line)
 
@@ -36,6 +39,7 @@ class TestLoggingUtil(unittest.TestCase):
             self.logger.log(msg, level=level)
 
         with open(self.test_file, "r") as f:
+            f.readline()
             logs = [json.loads(line) for line in f]
 
         for log, (level, msg) in zip(logs, messages.items()):
@@ -50,6 +54,7 @@ class TestLoggingUtil(unittest.TestCase):
             self.logger.log("Test with context")
 
         with open(self.test_file, "r") as f:
+            f.readline()
             log_data = json.loads(f.readline())
 
         self.assertEqual(log_data["context"], context_data)
@@ -65,6 +70,7 @@ class TestLoggingUtil(unittest.TestCase):
         self.logger.structured(**structured_data)
 
         with open(self.test_file, "r") as f:
+            f.readline()
             log_data = json.loads(f.readline())
 
         self.assertEqual(log_data["data"], structured_data)
@@ -77,6 +83,7 @@ class TestLoggingUtil(unittest.TestCase):
             self.logger.log("Test with correlation")
 
         with open(self.test_file, "r") as f:
+            f.readline()
             log_data = json.loads(f.readline())
 
         self.assertEqual(log_data["correlation_id"], correlation_id)

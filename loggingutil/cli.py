@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
+import yaml
 
 from .config import LogConfig
 
@@ -246,12 +247,13 @@ def validate(config_file: str):
             click.echo("Unsupported config file format")
             sys.exit(1)
 
+        # If we get here, validation passed
         click.echo("Configuration is valid!")
         click.echo("\nSettings:")
         for key, value in config.config.items():
             click.echo(f"  {key}: {value}")
 
-    except Exception as e:
+    except (ValueError, yaml.YAMLError, json.JSONDecodeError) as e:
         click.echo(f"Invalid configuration: {e}", err=True)
         sys.exit(1)
 

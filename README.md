@@ -1,8 +1,13 @@
 # LoggingUtil
 
-![Python](https://img.shields.io/badge/python-3.7%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-yellow)
-![PyPI](https://img.shields.io/pypi/v/loggingutil)
+[![PyPI version](https://badge.fury.io/py/loggingutil.svg)](https://badge.fury.io/py/loggingutil)
+[![Tests](https://github.com/mochathehuman/loggingutil/actions/workflows/tests.yml/badge.svg)](https://github.com/mochathehuman/loggingutil/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/mochathehuman/loggingutil/branch/main/graph/badge.svg)](https://codecov.io/gh/mochathehuman/loggingutil)
+[![Python Versions](https://img.shields.io/pypi/pyversions/loggingutil)](https://pypi.org/project/loggingutil)
+[![License](https://img.shields.io/github/license/mochathehuman/loggingutil)](https://github.com/mochathehuman/loggingutil/blob/main/LICENSE)
+[![Downloads](https://pepy.tech/badge/loggingutil)](https://pepy.tech/project/loggingutil)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue)](https://mochathehuman.github.io/loggingutil)
 
 ```bash
 pip install loggingutil

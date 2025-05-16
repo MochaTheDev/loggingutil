@@ -88,22 +88,14 @@ class LoggingUtilHandler(logging.Handler):
                 if key not in logging.LogRecord.__dict__:
                     context_data[key] = value
 
-            # Use context manager if we have extra context
+            # Log with or without context
             if context_data:
                 with self.logfile.context(**context_data):
                     self.logfile.log(data, level=level, tag=record.name)
             else:
                 self.logfile.log(data, level=level, tag=record.name)
 
-        except Exception:
-            self.handleError(record)
-
-    def handleError(self, record: logging.LogRecord):
-        """Enhanced error handling with structured error logging."""
-        try:
-            self.logfile.log_exception(
-                Exception("Failed to process log record"), tag="LOGGING_ADAPTER_ERROR"
-            )
-        except Exception:
-            # Fallback to base handler error handling
-            super().handleError(record)
+        except:
+            # Handle any error that occurred during logging
+            error = Exception("Failed to process log record")
+            self.logfile.log_exception(error, tag="LOGGING_ADAPTER_ERROR")

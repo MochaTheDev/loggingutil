@@ -9,25 +9,12 @@ import traceback
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timedelta
-from enum import Enum, auto
+from enum import auto
 from typing import Any, Callable, Dict, List, Optional
 
+from .config import LogLevel
+
 # LEVEL CLASS
-
-
-class LogLevel(Enum):
-    TRACE = auto()
-    DEBUG = auto()
-    INFO = auto()
-    NOTICE = auto()
-    WARN = auto()
-    ERROR = auto()
-    FATAL = auto()
-
-    def __ge__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value >= other.value
-        return NotImplemented
 
 
 class LogHandler:
@@ -205,10 +192,25 @@ class LogFile:
         context_str: str,
     ) -> str:
         """Format a log entry as a string."""
-        return (
-            f"{timestamp} [{level.name}] [{self.correlation_id}] "
-            f"{tag or ''} {context_str} {data}\n"
-        )
+        if self.mode == "json":
+            entry = {
+                "timestamp": timestamp,
+                "level": level.name,
+                "correlation_id": self.correlation_id,
+                "tag": tag,
+                "data": data,
+            }
+            if context_str:
+                try:
+                    entry["context"] = dict(item.split("=") for item in context_str.split())
+                except (ValueError, AttributeError):
+                    entry["context"] = context_str
+            return json.dumps(entry) + "\n"
+        else:
+            return (
+                f"{timestamp} [{level.name}] [{self.correlation_id}] "
+                f"{tag or ''} {context_str} {data}\n"
+            )
 
     async def _handle_async(self, entry: dict):
         """Process log entry through async handlers"""
@@ -232,11 +234,11 @@ class LogFile:
     def correlation(self, correlation_id: str):
         """Context manager for setting correlation ID"""
         previous = self._correlation_id
-        self._correlation_id = correlation_id
+        self.correlation_id = correlation_id
         try:
             yield
         finally:
-            self._correlation_id = previous
+            self.correlation_id = previous
 
     def get_metrics(self) -> dict:
         """Get current logging metrics"""
@@ -256,8 +258,15 @@ class LogFile:
     def loadfile(self):
         """Initialize/create log file if it is destroyed."""
         if not os.path.exists(self.filename):
+            init_entry = self.format_log_entry(
+                self._get_timestamp(),
+                LogLevel.INFO,
+                "INIT",
+                "Log file initialized",
+                "",
+            )
             with open(self.filename, "w") as f:
-                f.write("LoggingUtility::LOGFILE_INIT\n")
+                f.write(init_entry)
             self._print(f"Created new log file: {self.filename}")
 
     def setLevel(self, level: LogLevel) -> None:
@@ -361,6 +370,11 @@ class LogFile:
         """Enhanced log method with filtering and metrics"""
         if level is None:
             level = self.level
+        elif isinstance(level, str):
+            try:
+                level = LogLevel[level.upper()]
+            except (KeyError, AttributeError):
+                level = self.level
 
         if not self.should_sample():
             return
@@ -390,8 +404,8 @@ class LogFile:
         self.buffer.append(entry)
         self.metrics.record_log(level)
 
-        if len(self.buffer) >= self.buffer_limit:
-            self.flush()
+        # Flush immediately instead of waiting for buffer to fill
+        self.flush()
 
         # Check for time-based rotation
         self._check_time_rotation()
@@ -487,3 +501,10 @@ class LogFile:
         for i in range(0, len(entries), batch_size):
             batch = entries[i : i + batch_size]
             # ... rest of the method
+
+    def _write(self, entry: str):
+        """Write a log entry to the file."""
+        with open(self.filename, "a") as f:
+            f.write(entry)
+        if self.external_stream:
+            self.external_stream(entry)

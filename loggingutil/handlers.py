@@ -36,20 +36,23 @@ class SQLiteHandler(BaseHandler):
         conn.close()
 
     async def handle(self, log_entry: dict):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute(
-            "INSERT INTO logs VALUES (?, ?, ?, ?, ?)",
-            (
-                log_entry["timestamp"],
-                log_entry["level"],
-                log_entry.get("tag"),
-                log_entry.get("correlation_id"),
-                json.dumps(log_entry["data"]),
-            ),
-        )
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.db_path)
+            c = conn.cursor()
+            c.execute(
+                "INSERT INTO logs VALUES (?, ?, ?, ?, ?)",
+                (
+                    log_entry.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                    log_entry.get("level", "INFO"),
+                    log_entry.get("tag"),
+                    log_entry.get("correlation_id"),
+                    json.dumps(log_entry.get("data", "")),
+                ),
+            )
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"SQLite error: {e}")
 
 
 class WebhookHandler(BaseHandler):
@@ -126,7 +129,7 @@ class FileRotatingHandler(BaseHandler):
         self.base_dir = Path(base_dir)
         self.rotate_by = rotate_by
         self.max_files = max_files
-        self.base_dir.mkdir(exist_ok=True)
+        os.makedirs(self.base_dir, exist_ok=True)
 
     def _get_filename(self, log_entry: dict) -> Path:
         if self.rotate_by == "date":
@@ -137,18 +140,27 @@ class FileRotatingHandler(BaseHandler):
             return self.base_dir / f"{tag}.log"
 
     async def handle(self, log_entry: dict):
-        filepath = self._get_filename(log_entry)
-        with open(filepath, "a") as f:
-            f.write(json.dumps(log_entry) + "\n")
+        try:
+            filepath = self._get_filename(log_entry)
+            with open(filepath, "a") as f:
+                f.write(json.dumps(log_entry) + "\n")
 
-        # Cleanup old files if needed
-        self._cleanup_old_files()
+            # Cleanup old files if needed
+            await self._cleanup_old_files()
+        except Exception as e:
+            print(f"File rotation error: {e}")
 
-    def _cleanup_old_files(self):
-        files = sorted(self.base_dir.glob("*.log"), key=lambda x: x.stat().st_mtime)
-        if len(files) > self.max_files:
-            for f in files[: -self.max_files]:
-                f.unlink()
+    async def _cleanup_old_files(self):
+        try:
+            files = sorted(self.base_dir.glob("*.log"), key=lambda x: x.stat().st_mtime)
+            if len(files) > self.max_files:
+                for f in files[: -self.max_files]:
+                    try:
+                        f.unlink()
+                    except OSError as e:
+                        print(f"Error deleting old log file {f}: {e}")
+        except Exception as e:
+            print(f"Error during file cleanup: {e}")
 
 
 class CloudWatchHandler(BaseHandler):
@@ -237,33 +249,36 @@ class ConsoleHandler(BaseHandler):
     """Handler that prints logs to console with colors and formatting."""
 
     COLORS = {
-        "TRACE": "\033[37m",  # white
-        "DEBUG": "\033[36m",  # cyan
-        "INFO": "\033[32m",  # green
-        "NOTICE": "\033[34m",  # blue
-        "WARN": "\033[33m",  # yellow
-        "ERROR": "\033[31m",  # red
-        "FATAL": "\033[35m",  # magenta
+        "DEBUG": "\033[36m",  # Cyan
+        "INFO": "\033[32m",   # Green
+        "WARNING": "\033[33m", # Yellow
+        "ERROR": "\033[31m",  # Red
+        "CRITICAL": "\033[31;1m", # Bold Red
         "RESET": "\033[0m",
     }
 
     def __init__(self, color: bool = True, format: str = "detailed"):
-        self.color = color and os.name != "nt"  # Disable colors on Windows
+        self.use_color = color
         self.format = format
 
     async def handle(self, log_entry: dict):
-        level = log_entry["level"]
-        color_start = self.COLORS[level] if self.color else ""
-        color_reset = self.COLORS["RESET"] if self.color else ""
+        timestamp = log_entry.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        level = log_entry.get("level", "INFO")
+        data = log_entry.get("data", "")
+        tag = log_entry.get("tag", "")
+        correlation_id = log_entry.get("correlation_id", "")
 
-        if self.format == "detailed":
-            print(
-                f"{color_start}[{log_entry['timestamp']}] "
-                f"[{level}] "
-                f"[{log_entry.get('correlation_id', 'no-correlation')}] "
-                f"{log_entry.get('tag', '')} "
-                f"{json.dumps(log_entry['data'])}"
-                f"{color_reset}"
-            )
+        if self.use_color:
+            color = self.COLORS.get(level, "")
+            reset = self.COLORS["RESET"]
+            message = f"{timestamp} {color}[{level}]{reset}"
         else:
-            print(f"{color_start}{json.dumps(log_entry)}{color_reset}")
+            message = f"{timestamp} [{level}]"
+
+        if correlation_id:
+            message += f" [{correlation_id}]"
+        if tag:
+            message += f" {tag}:"
+        message += f" {data}"
+
+        print(message)
