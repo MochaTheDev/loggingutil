@@ -36,22 +36,22 @@ setup(
         "click>=8.0.0",
     ],
     extras_require={
-        'aws': ["boto3>=1.26.0"],
-        'elastic': ["elasticsearch>=7.0.0"],
-        'metrics': ["prometheus_client>=0.16.0"],
-        'structlog': ["structlog>=22.1.0"],
-        'all': [
+        "aws": ["boto3>=1.26.0"],
+        "elastic": ["elasticsearch>=7.0.0"],
+        "metrics": ["prometheus_client>=0.16.0"],
+        "structlog": ["structlog>=22.1.0"],
+        "all": [
             "boto3>=1.26.0",
             "elasticsearch>=7.0.0",
             "prometheus_client>=0.16.0",
             "structlog>=22.1.0",
             "rich>=12.0.0",  # For enhanced CLI output
             "tabulate>=0.8.0",  # For table formatting
-        ]
+        ],
     },
     entry_points={
-        'console_scripts': [
-            'loggingutil=loggingutil.cli:main',
+        "console_scripts": [
+            "loggingutil=loggingutil.cli:main",
         ],
     },
     project_urls={

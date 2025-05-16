@@ -15,6 +15,7 @@ from contextlib import contextmanager
 
 # LEVEL CLASS
 
+
 class LogLevel(Enum):
     TRACE = auto()
     DEBUG = auto()
@@ -29,18 +30,24 @@ class LogLevel(Enum):
             return self.value >= other.value
         return NotImplemented
 
+
 class LogHandler:
     """Base class for custom log handlers"""
+
     async def handle(self, log_entry: dict) -> None:
         raise NotImplementedError
 
+
 class LogFilter:
     """Base class for log filters"""
+
     def filter(self, log_entry: dict) -> bool:
         raise NotImplementedError
 
+
 class LogMetrics:
     """Tracks logging metrics"""
+
     def __init__(self):
         self.log_counts: Dict[LogLevel, int] = {level: 0 for level in LogLevel}
         self.error_counts: Dict[str, int] = {}
@@ -59,16 +66,18 @@ class LogMetrics:
             "uptime": str(datetime.now() - self.start_time),
             "log_counts": {k.name: v for k, v in self.log_counts.items()},
             "error_counts": self.error_counts,
-            "last_errors": {k: str(v) for k, v in self.last_error_time.items()}
+            "last_errors": {k: str(v) for k, v in self.last_error_time.items()},
         }
+
 
 class LogContext:
     """Thread-local storage for log context"""
+
     _context = threading.local()
 
     @classmethod
     def get_context(cls) -> dict:
-        if not hasattr(cls._context, 'data'):
+        if not hasattr(cls._context, "data"):
             cls._context.data = {}
         return cls._context.data
 
@@ -78,32 +87,36 @@ class LogContext:
 
     @classmethod
     def clear(cls):
-        if hasattr(cls._context, 'data'):
+        if hasattr(cls._context, "data"):
             cls._context.data.clear()
+
 
 # MAIN CLASS
 
+
 class LogFile:
     """Enhanced logging utility that surpasses the standard library logging module."""
-    
-    def __init__(self,
-                 filename: str = "logs.log",
-                 verbose: bool = True,
-                 max_size_mb: int = 5,
-                 keep_days: int = 7,
-                 timestamp_format: str = "[%Y-%m-%d %H:%M:%S.%f]",
-                 mode: str = "json",
-                 compress: bool = False,
-                 use_utc: bool = False,
-                 include_timestamp: bool = True,
-                 custom_formatter: Optional[Callable] = None,
-                 external_stream: Optional[Callable[[str], None]] = None,
-                 sampling_rate: float = 1.0,
-                 batch_size: int = 100,
-                 rotate_time: Optional[str] = None,  # "daily", "hourly", None
-                 sanitize_keys: List[str] = None,
-                 schema_validation: bool = False):
-        
+
+    def __init__(
+        self,
+        filename: str = "logs.log",
+        verbose: bool = True,
+        max_size_mb: int = 5,
+        keep_days: int = 7,
+        timestamp_format: str = "[%Y-%m-%d %H:%M:%S.%f]",
+        mode: str = "json",
+        compress: bool = False,
+        use_utc: bool = False,
+        include_timestamp: bool = True,
+        custom_formatter: Optional[Callable] = None,
+        external_stream: Optional[Callable[[str], None]] = None,
+        sampling_rate: float = 1.0,
+        batch_size: int = 100,
+        rotate_time: Optional[str] = None,  # "daily", "hourly", None
+        sanitize_keys: List[str] = None,
+        schema_validation: bool = False,
+    ):
+
         self.filename = filename
         self.verbose = verbose
         self.max_size = max_size_mb * 1024 * 1024
@@ -118,9 +131,9 @@ class LogFile:
         self.sampling_rate = max(0.0, min(1.0, sampling_rate))
         self.batch_size = batch_size
         self.rotate_time = rotate_time
-        self.sanitize_keys = sanitize_keys or ['password', 'token', 'secret', 'key']
+        self.sanitize_keys = sanitize_keys or ["password", "token", "secret", "key"]
         self.schema_validation = schema_validation
-        
+
         self.buffer = []
         self.buffer_limit = batch_size
         self.level = LogLevel.INFO
@@ -129,7 +142,7 @@ class LogFile:
         self.metrics = LogMetrics()
         self._last_rotation_check = datetime.now()
         self._correlation_id = None
-        
+
         self.loadfile()
         self.cleanup_old_logs()
 
@@ -159,8 +172,14 @@ class LogFile:
     def _sanitize_data(self, data: Any) -> Any:
         """Recursively sanitize sensitive data"""
         if isinstance(data, dict):
-            return {k: '***REDACTED***' if k in self.sanitize_keys 
-                   else self._sanitize_data(v) for k, v in data.items()}
+            return {
+                k: (
+                    "***REDACTED***"
+                    if k in self.sanitize_keys
+                    else self._sanitize_data(v)
+                )
+                for k, v in data.items()
+            }
         elif isinstance(data, list):
             return [self._sanitize_data(item) for item in data]
         return data
@@ -170,38 +189,42 @@ class LogFile:
         stack = inspect.stack()
         # Skip this function and internal logging functions
         for frame_info in stack[2:]:
-            if 'logging' not in frame_info.filename:
+            if "logging" not in frame_info.filename:
                 return {
-                    'file': os.path.basename(frame_info.filename),
-                    'function': frame_info.function,
-                    'line': frame_info.lineno
+                    "file": os.path.basename(frame_info.filename),
+                    "function": frame_info.function,
+                    "line": frame_info.lineno,
                 }
         return {}
 
-    def _format_entry(self, data: Any, tag: Optional[str], level: LogLevel = None) -> str:
+    def _format_entry(
+        self, data: Any, tag: Optional[str], level: LogLevel = None
+    ) -> str:
         """Enhanced log entry formatting with additional context"""
         timestamp = self._get_timestamp()
         level = level or self.level
-        
+
         log_entry = {
-            'timestamp': timestamp,
-            'level': level.name,
-            'correlation_id': self.correlation_id,
-            'tag': tag,
-            'data': self._sanitize_data(data),
-            'context': LogContext.get_context(),
-            'caller': self._get_caller_info(),
-            'process_id': os.getpid(),
-            'thread_id': threading.get_ident()
+            "timestamp": timestamp,
+            "level": level.name,
+            "correlation_id": self.correlation_id,
+            "tag": tag,
+            "data": self._sanitize_data(data),
+            "context": LogContext.get_context(),
+            "caller": self._get_caller_info(),
+            "process_id": os.getpid(),
+            "thread_id": threading.get_ident(),
         }
 
         if self.custom_formatter:
             return self.custom_formatter(log_entry)
-        
-        if self.mode == 'json':
-            return json.dumps(log_entry) + '\n'
+
+        if self.mode == "json":
+            return json.dumps(log_entry) + "\n"
         else:
-            context_str = ' '.join(f'{k}={v}' for k, v in LogContext.get_context().items())
+            context_str = " ".join(
+                f"{k}={v}" for k, v in LogContext.get_context().items()
+            )
             return f"{timestamp} [{level.name}] [{self.correlation_id}] {tag or ''} {context_str} {data}\n"
 
     async def _handle_async(self, entry: dict):
@@ -250,15 +273,15 @@ class LogFile:
     def loadfile(self):
         """Initialize/create log file if it is destroyed."""
         if not os.path.exists(self.filename):
-            with open(self.filename, 'w') as f:
+            with open(self.filename, "w") as f:
                 f.write("LoggingUtility::LOGFILE_INIT\n")
             self._print(f"Created new log file: {self.filename}")
-    
+
     def setLevel(self, level):
         """Sets default output level (used if no level passed to .log()) Example:\nsetLevel(logfile = loggingutil.LogFile(); logfile.setLevel(logfile.notice))"""
         if isinstance(level, LogLevel):
             self.level = level
-    
+
     def getLevel(self):
         return self.level
 
@@ -266,12 +289,27 @@ class LogFile:
         return level.name if isinstance(level, LogLevel) else str(level)
 
     def _rotate_if_needed(self):
-        if os.path.exists(self.filename) and os.path.getsize(self.filename) >= self.max_size:
-            timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S') if self.use_utc else datetime.now().strftime('%Y%m%d_%H%M%S')
+        if (
+            os.path.exists(self.filename)
+            and os.path.getsize(self.filename) >= self.max_size
+        ):
+            timestamp = (
+                datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+                if self.use_utc
+                else datetime.now().strftime("%Y%m%d_%H%M%S")
+            )
             base, ext = os.path.splitext(self.filename)
-            rotated_name = f"{base}_{timestamp}{ext}.gz" if self.compress else f"{base}_{timestamp}{ext}"
-            with open(self.filename, 'rb') as f_in:
-                with gzip.open(rotated_name, 'wb') if self.compress else open(rotated_name, 'wb') as f_out:
+            rotated_name = (
+                f"{base}_{timestamp}{ext}.gz"
+                if self.compress
+                else f"{base}_{timestamp}{ext}"
+            )
+            with open(self.filename, "rb") as f_in:
+                with (
+                    gzip.open(rotated_name, "wb")
+                    if self.compress
+                    else open(rotated_name, "wb")
+                ) as f_out:
                     f_out.write(f_in.read())
             os.remove(self.filename)
             self._print(f"Log rotated: {rotated_name}")
@@ -283,7 +321,7 @@ class LogFile:
             if file.startswith(base + "_"):
                 try:
                     timestamp_str = file.split("_")[-1].split(".")[0]
-                    file_time = datetime.strptime(timestamp_str, '%Y%m%d_%H%M%S')
+                    file_time = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
                     if now - file_time > timedelta(days=self.keep_days):
                         os.remove(file)
                         self._print(f"Deleted old log file: {file}")
@@ -298,37 +336,37 @@ class LogFile:
         """Check if log file should be rotated based on time"""
         if not self.rotate_time:
             return
-            
+
         now = datetime.now()
-        if self.rotate_time == 'daily':
+        if self.rotate_time == "daily":
             if now.date() > self._last_rotation_check.date():
                 self._rotate_log()
-        elif self.rotate_time == 'hourly':
+        elif self.rotate_time == "hourly":
             if now.hour > self._last_rotation_check.hour:
                 self._rotate_log()
-                
+
         self._last_rotation_check = now
 
     def _rotate_log(self):
         """Rotate log file"""
         if not os.path.exists(self.filename):
             return
-            
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         base, ext = os.path.splitext(self.filename)
         rotated_name = f"{base}_{timestamp}{ext}"
-        
+
         if self.compress:
-            rotated_name += '.gz'
-            with open(self.filename, 'rb') as f_in:
-                with gzip.open(rotated_name, 'wb') as f_out:
+            rotated_name += ".gz"
+            with open(self.filename, "rb") as f_in:
+                with gzip.open(rotated_name, "wb") as f_out:
                     f_out.write(f_in.read())
         else:
             os.rename(self.filename, rotated_name)
-            
-        with open(self.filename, 'w') as f:
+
+        with open(self.filename, "w") as f:
             f.write(f"Log file rotated from {rotated_name}\n")
-            
+
         self._print(f"Log rotated: {rotated_name}")
 
     def log(self, data: Any, level: LogLevel = None, tag: str = None):
@@ -344,12 +382,12 @@ class LogFile:
 
         # Apply filters
         log_entry = {
-            'level': level,
-            'tag': tag,
-            'data': data,
-            'timestamp': self._get_timestamp()
+            "level": level,
+            "tag": tag,
+            "data": data,
+            "timestamp": self._get_timestamp(),
         }
-        
+
         for log_filter in self.filters:
             if not log_filter.filter(log_entry):
                 return
@@ -357,7 +395,7 @@ class LogFile:
         entry = self._format_entry(data, tag=tag, level=level)
         self.buffer.append(entry)
         self.metrics.record_log(level)
-        
+
         if len(self.buffer) >= self.buffer_limit:
             self.flush()
 
@@ -366,20 +404,21 @@ class LogFile:
 
     async def async_batch_log(self, entries: List[tuple]):
         """Log multiple entries asynchronously"""
+
         async def process_batch(batch):
             for data, level, tag in batch:
                 await self.async_log(data, level, tag)
-                
+
         batch_size = self.batch_size
         for i in range(0, len(entries), batch_size):
-            batch = entries[i:i + batch_size]
+            batch = entries[i : i + batch_size]
             await process_batch(batch)
 
     def flush(self):
         """Clears the buffer and dumps current buffer data to log file."""
         if not self.buffer:
             return
-        
+
         for entry in self.buffer:
             self._write(entry)
         self.buffer.clear()
@@ -394,12 +433,13 @@ class LogFile:
 
     async def async_log_http_response(self, resp, level: LogLevel = None, tag="HTTP"):
         """Log HTTP responses from APIs"""
-        if level == None : level = self.getLevel()
+        if level == None:
+            level = self.getLevel()
         try:
             info = {
                 "status": resp.status,
                 "headers": dict(resp.headers),
-                "body": await resp.text()
+                "body": await resp.text(),
             }
             self.log(info, level=level, tag=tag)
         except Exception as e:
@@ -414,7 +454,7 @@ class LogFile:
     def wipe(self):
         """Completely clear the log file."""
         self.flush()
-        with open(self.filename, 'w'):
+        with open(self.filename, "w"):
             pass
         self._print(f"File {self.filename} has been wiped.")
 
@@ -427,7 +467,7 @@ class LogFile:
         if exc_type:
             self.log_exception(exc_val)
         self._correlation_id = None
-    
+
     def __repr__(self):
         return f"<LogFile filename='{self.filename}' mode='{self.mode}' level='{self.levelEquiv(self.getLevel())}'>"
 
