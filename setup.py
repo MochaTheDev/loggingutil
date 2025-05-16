@@ -57,9 +57,7 @@ setup(
     project_urls={
         "Bug Tracker": "https://github.com/mochathehuman/loggingutil/issues",
         "Source": "https://github.com/mochathehuman/loggingutil",
-        "Documentation": (
-            "https://mochathehuman.github.io/loggingutil/"
-        ),
+        "Documentation": ("https://mochathehuman.github.io/loggingutil/"),
     },
     keywords=[
         "logging",
