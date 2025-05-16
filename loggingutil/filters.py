@@ -1,6 +1,8 @@
 import re
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
+from .config import LogLevel  # Import LogLevel enum
 
 
 class BaseFilter:
@@ -15,9 +17,25 @@ class LevelFilter(BaseFilter):
 
     def __init__(self, min_level: str):
         self.min_level = min_level
+        try:
+            # Try to convert string to LogLevel enum
+            self.min_level_enum = LogLevel[min_level.upper()]
+        except (KeyError, AttributeError):
+            # If conversion fails, keep the string value
+            self.min_level_enum = None
 
     def filter(self, log_entry: dict) -> bool:
-        return log_entry["level"] >= self.min_level
+        try:
+            log_level = log_entry.get("level", "")
+            if self.min_level_enum is not None:
+                # If we have enum values, use them for comparison
+                log_level_enum = LogLevel[log_level.upper()]
+                return log_level_enum >= self.min_level_enum
+            # Fall back to string comparison
+            return log_level >= self.min_level
+        except (KeyError, AttributeError):
+            # If level comparison fails, treat as below minimum
+            return False
 
 
 class RegexFilter(BaseFilter):

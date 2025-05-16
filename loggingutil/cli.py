@@ -1,3 +1,4 @@
+import json
 import sys
 import sqlite3
 from datetime import datetime, timedelta
@@ -178,9 +179,15 @@ def convert(log_file: str, output: Optional[str]):
 
     # Create table
     c.execute(
-        """CREATE TABLE IF NOT EXISTS logs
-                 (timestamp TEXT, level TEXT, tag TEXT,
-                  correlation_id TEXT, data TEXT)"""
+        """
+        CREATE TABLE IF NOT EXISTS logs (
+            timestamp TEXT,
+            level TEXT,
+            tag TEXT,
+            correlation_id TEXT,
+            data TEXT
+        )
+        """
     )
 
     # Process logs
