@@ -2,6 +2,14 @@
 
 Welcome to LoggingUtil, a powerful Python logging utility that surpasses the standard library logging module.
 
+## Navigation
+
+- **[API Reference](api/logfile.md)**: Detailed API documentation
+    - [LogFile Class](api/logfile.md)
+    - [Handlers](api/handlers.md)
+- **[Cloud Integration Guide](guide/cloud.md)**: AWS and Elasticsearch integration guides
+- **[Changelog](changelog.md)**: Version history and updates
+
 ## Features
 
 - **Advanced Handlers**: Console, SQLite, Webhook, Email, File Rotation, CloudWatch, Elasticsearch
@@ -56,12 +64,21 @@ logger.add_handler(ElasticsearchHandler(
 ))
 ```
 
-## Documentation Structure
+## Documentation Sections
 
-- **User Guide**: Step-by-step guides and tutorials
-- **API Reference**: Detailed API documentation
-- **Cloud Integration**: AWS and Elasticsearch integration guides
-- **Best Practices**: Recommendations for production use
+### [API Reference](api/logfile.md)
+Complete API documentation for all LoggingUtil classes and methods.
+
+### [Cloud Integration Guide](guide/cloud.md)
+Detailed instructions for integrating with AWS CloudWatch, Elasticsearch, and other cloud services.
+
+### [Changelog](changelog.md)
+Track version history, updates, and breaking changes.
+
+## Getting Help
+
+- **[GitHub Issues](https://github.com/mochathehuman/loggingutil/issues)**: Report bugs or request features
+- **[GitHub Discussions](https://github.com/mochathehuman/loggingutil/discussions)**: Ask questions and share ideas
 
 ## Contributing
 
