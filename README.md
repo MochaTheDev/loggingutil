@@ -1,118 +1,219 @@
-# loggingutil
+# LoggingUtil
 
 ![Python](https://img.shields.io/badge/python-3.7%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 ![PyPI](https://img.shields.io/pypi/v/loggingutil)
 
-**Advanced Python Logging Utility**  
-Flexible, efficient, and powerful logging with file rotation, JSON/text modes, async support, exception tracking, and HTTP response logging.
-
----
-
-## 📦 Installation
-
 ```bash
 pip install loggingutil
 ```
 
-- Log rotation by file size
+A powerful Python logging utility that combines simplicity with advanced features. Perfect for both simple scripts and enterprise applications.
 
-- Optional GZip compression
+## Quick Start
 
-- Text or JSON output modes
+```python
+from loggingutil import LogFile
 
-- Buffering for performance
+# Simple usage
+logger = LogFile("app.log")
+logger.log("Hello, World!")
 
-- Custom timestamp and formatting
+# With context and structured data
+with logger.context(user_id="123"):
+    logger.structured(
+        event="user_login",
+        ip="1.2.3.4",
+        status="success"
+    )
+```
 
-- Auto-deletion of old logs
+## Features
 
-- Async logging and HTTP response support
+- **Simple Interface** - Easy to use, hard to misuse
+- **Smart Rotation** - By size, time, or custom rules
+- **Structured Logging** - JSON format with schema validation
+- **Multiple Outputs** - Console, File, Database, Cloud
+- **Context Management** - Track request flow
+- **Smart Filtering** - Rate limiting, sampling, deduplication
+- **Async Support** - High-performance logging
+- **Data Safety** - Automatic sensitive data redaction
+- **Metrics** - Built-in logging statistics
+- **Extensible** - Custom handlers and filters
 
-- Exception logging with tracebacks
+## Installation
 
-- External stream hooks (e.g., to Discord, console)
+```bash
+pip install loggingutil
 
-- Custom log levels and formatters
+# With all extras (elasticsearch, cloudwatch, etc)
+pip install loggingutil[all]
+```
 
+## Common Use Cases
+
+### Basic Logging
 ```python
 from loggingutil import LogFile, LogLevel
 
-log = LogFile(filename="mylog.log", mode="text")
+logger = LogFile("app.log")
 
-log.log("System initialized.")
-log.log("Something went wrong!", level=LogLevel.ERROR)
-log.flush()
-```
+# Simple logging
+logger.log("System started")
 
-## Output Formats
-### Text (Default)
+# With level and tag
+logger.log("Invalid input", level=LogLevel.ERROR, tag="VALIDATION")
 
-```txt
-[2025-05-13 12:34:56] [INFO] [INIT] System initialized.
-```
-
-### JSON
-
-```json
-{
-  "timestamp": "2025-05-13 12:34:56",
-  "level": 1,
-  "tag": "INIT",
-  "data": "System initialized."
-}
-```
-
-*Set with:*
-```python
-log = LogFile(mode="json")
-```
-
-### Options
-```python
-LogFile(
-    filename="log.txt",
-    verbose=True,
-    max_size_mb=5,
-    keep_days=7,
-    timestamp_format="[%Y-%m-%d %H:%M:%S]",
-    mode="text",  # or "json"
-    compress=False,
-    use_utc=False,
-    include_timestamp=True,
-    custom_formatter=None,
-    external_stream=None
+# Structured data
+logger.structured(
+    event="order_created",
+    order_id="123",
+    amount=99.99
 )
 ```
 
-## Async Logging
-
+### Request Tracking
 ```python
-await log.async_log("Async message", tag="ASYNC")
+with logger.context(request_id="req-123", user="john"):
+    with logger.correlation("txn-456"):
+        logger.log("Processing payment")
+        try:
+            process_payment()
+        except Exception as e:
+            logger.log_exception(e)
 ```
 
-### Log HTTP Responses
-
+### Multiple Outputs
 ```python
-async with aiohttp.ClientSession() as session:
-    async with session.get("https://api.example.com") as resp:
-        await log.async_log_http_response(resp)
+from loggingutil.handlers import ConsoleHandler, ElasticsearchHandler
+
+logger = LogFile("app.log")
+
+# Colored console output
+logger.add_handler(ConsoleHandler(color=True))
+
+# Elasticsearch for search
+logger.add_handler(ElasticsearchHandler(
+    "http://elasticsearch:9200",
+    index_prefix="myapp"
+))
 ```
 
-### Log Exceptions
-
+### Smart Filtering
 ```python
-try:
-    1 / 0
-except Exception as e:
-    log.log_exception(e)
+from loggingutil.filters import RateLimitFilter, DuplicateFilter
+
+# Limit error rates
+logger.add_filter(RateLimitFilter(
+    max_count=100,  # max 100 logs
+    time_window=60,  # per minute
+    group_by="error_type"  # per error type
+))
+
+# Prevent duplicate errors
+logger.add_filter(DuplicateFilter(
+    time_window=300,  # 5 minutes
+    fields=["error_type", "user_id"]
+))
 ```
 
-## Custom formatting
+### Configuration
+```python
+# From YAML
+from loggingutil import LogConfig
+config = LogConfig.from_yaml("logging.yaml")
+logger = LogFile(**config)
+
+# From environment
+# LOGGINGUTIL_FILENAME=app.log
+# LOGGINGUTIL_MODE=json
+logger = LogFile()  # auto-loads from env
+```
+
+### Cloud Integration
+```python
+from loggingutil.handlers import CloudWatchHandler
+
+logger.add_handler(CloudWatchHandler(
+    log_group="myapp",
+    log_stream="prod"
+))
+```
+
+## Advanced Configuration
 
 ```python
-def my_formatter(data, level, tag):
-    return f"[CUSTOM] {data}\n"
-
-log = LogFile(custom_formatter=my_formatter)
+logger = LogFile(
+    # Basic settings
+    filename="app.log",
+    mode="json",  # or "text"
+    level=LogLevel.INFO,
+    
+    # Rotation settings
+    rotate_time="daily",  # or "hourly", None
+    max_size_mb=100,
+    keep_days=30,
+    compress=True,
+    
+    # Performance settings
+    batch_size=100,
+    sampling_rate=0.1,  # sample 10% of logs
+    
+    # Security settings
+    sanitize_keys=["password", "token", "key"],
+    
+    # Time settings
+    use_utc=True,
+    timestamp_format="[%Y-%m-%d %H:%M:%S.%f]"
+)
 ```
+
+## Migration from stdlib logging
+
+```python
+import logging
+from loggingutil.adapter import LoggingUtilHandler
+
+# Create LoggingUtil logger
+logutil = LogFile("app.log")
+
+# Create handler
+handler = LoggingUtilHandler(logutil)
+
+# Add to existing logger
+logger = logging.getLogger("myapp")
+logger.addHandler(handler)
+
+# Use standard logging - it will use LoggingUtil
+logger.info("Hello world", extra={"user_id": "123"})
+```
+
+## Metrics and Monitoring
+
+```python
+# Get logging statistics
+stats = logger.get_metrics()
+print(f"Error rate: {stats['log_counts']['ERROR']}/minute")
+print(f"Uptime: {stats['uptime']}")
+```
+
+## Custom Formatting
+
+```python
+def my_formatter(log_entry: dict) -> str:
+    return f"[CUSTOM] {log_entry['data']}\n"
+
+logger = LogFile(custom_formatter=my_formatter)
+```
+
+## Security Best Practices
+
+1. Use `sanitize_keys` to automatically redact sensitive data
+2. Enable compression for log files
+3. Use structured logging for better security analysis
+4. Implement rate limiting for error logs
+5. Set appropriate file permissions
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
