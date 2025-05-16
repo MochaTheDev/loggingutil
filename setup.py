@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="loggingutil",
-    version="2.0.0",
+    version="2.0.1",
     author="Mocha",
     author_email="ohplot@gmail.com",
     description=("A powerful logging utility that surpasses the standard library"),
@@ -58,7 +58,7 @@ setup(
         "Bug Tracker": "https://github.com/mochathehuman/loggingutil/issues",
         "Source": "https://github.com/mochathehuman/loggingutil",
         "Documentation": (
-            "https://github.com/mochathehuman/loggingutil/blob/main/README.md"
+            "https://mochathehuman.github.io/loggingutil/"
         ),
     },
     keywords=[

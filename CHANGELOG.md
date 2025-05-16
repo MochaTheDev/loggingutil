@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.3] - 05-15-25
+## [2.0.1] - 05-15-25
 
 ### Added
 - Comprehensive handler implementations (Console, SQLite, Webhook, Email, File, CloudWatch, Elasticsearch)
@@ -26,7 +26,3 @@
 - Line length compliance
 - Whitespace consistency
 - Documentation formatting
-
-## [1.2.2] - Initial Release
-
-- Initial public release with basic functionality 
