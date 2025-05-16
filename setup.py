@@ -8,9 +8,7 @@ setup(
     version="1.2.3",
     author="Mocha",
     author_email="ohplot@gmail.com",
-    description=(
-        "A powerful logging utility that surpasses the standard library"
-    ),
+    description=("A powerful logging utility that surpasses the standard library"),
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mochathehuman/loggingutil",

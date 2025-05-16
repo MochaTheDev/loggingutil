@@ -166,10 +166,7 @@ class LogFile:
 
     def should_sample(self) -> bool:
         """Check if this log entry should be sampled."""
-        return (
-            self.sampling_rate >= 1.0
-            or random.random() < self.sampling_rate
-        )
+        return self.sampling_rate >= 1.0 or random.random() < self.sampling_rate
 
     def _sanitize_data(self, data: Any) -> Any:
         """Recursively sanitize sensitive data"""
@@ -265,7 +262,7 @@ class LogFile:
 
     def setLevel(self, level: LogLevel) -> None:
         """Sets default output level (used if no level passed to .log())
-        
+
         Example:
         logfile = loggingutil.LogFile()
         logfile.setLevel(logfile.notice)
@@ -388,7 +385,7 @@ class LogFile:
             level,
             tag,
             self._sanitize_data(data),
-            " ".join(f"{k}={v}" for k, v in LogContext.get_context().items())
+            " ".join(f"{k}={v}" for k, v in LogContext.get_context().items()),
         )
         self.buffer.append(entry)
         self.metrics.record_log(level)
@@ -477,23 +474,16 @@ class LogFile:
 
     def _parse_timestamp(self, timestamp_str: str) -> datetime:
         """Parse timestamp from filename."""
-        file_time = datetime.strptime(
-            timestamp_str,
-            "%Y%m%d_%H%M%S"
-        )
+        file_time = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
         return file_time
 
     def _format_timestamp(self) -> str:
         """Format current timestamp."""
         now = datetime.now()
-        return (
-            now.strftime(self.timestamp_format)
-            if self.include_timestamp
-            else ""
-        )
+        return now.strftime(self.timestamp_format) if self.include_timestamp else ""
 
     def _process_batch(self, entries: List[dict], batch_size: int = 100):
         """Process a batch of log entries."""
         for i in range(0, len(entries), batch_size):
-            batch = entries[i:i + batch_size]
+            batch = entries[i : i + batch_size]
             # ... rest of the method
