@@ -103,10 +103,10 @@ class TestWebhookHandler:
                 "level": "INFO",
                 "data": "Test message",
             }
-            
+
             # Handle the log entry
             await handler.handle(log_entry)
-            
+
             # Verify the request was made
             requests = m.requests.get(("POST", URL(webhook_url)))
             assert requests is not None
@@ -158,6 +158,7 @@ class TestFileRotatingHandler:
         )
         yield handler
         import shutil
+
         if os.path.exists(base_dir):
             shutil.rmtree(base_dir)
 
@@ -169,14 +170,14 @@ class TestFileRotatingHandler:
             "level": "INFO",
             "data": "Test message",
         }
-        
+
         # Write multiple logs
         for _ in range(3):
             await handler.handle(log_entry)
 
         # Check directory exists
         assert os.path.exists(base_dir)
-        
+
         # Check files were created
         files = os.listdir(base_dir)
         assert len(files) > 0
@@ -216,7 +217,7 @@ class TestElasticsearchHandler:
         with aioresponses() as m:
             es_url = "http://elasticsearch:9200"
             handler = ElasticsearchHandler(es_url, index_prefix="test-logs")
-            
+
             # Mock the index API endpoint
             m.post(f"{es_url}/test-logs-*/_doc", status=201)
 
@@ -231,4 +232,4 @@ class TestElasticsearchHandler:
             requests = m.requests.values()
             assert len(requests) == 1
             request = list(requests)[0][0]
-            assert request.kwargs["json"] == log_entry 
+            assert request.kwargs["json"] == log_entry

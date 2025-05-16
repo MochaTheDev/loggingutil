@@ -202,7 +202,9 @@ class LogFile:
             }
             if context_str:
                 try:
-                    entry["context"] = dict(item.split("=") for item in context_str.split())
+                    entry["context"] = dict(
+                        item.split("=") for item in context_str.split()
+                    )
                 except (ValueError, AttributeError):
                     entry["context"] = context_str
             return json.dumps(entry) + "\n"

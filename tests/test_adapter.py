@@ -14,17 +14,21 @@ class TestLoggingUtilHandler:
         context_mock = MagicMock()
         mock.context.return_value = context_mock
         mock.context.return_value.__enter__ = MagicMock()
-        mock.context.return_value.__exit__ = MagicMock(return_value=False)  # Don't suppress exceptions
+        mock.context.return_value.__exit__ = MagicMock(
+            return_value=False
+        )  # Don't suppress exceptions
         # Set up log and log_exception methods
-        mock.log = MagicMock(name='log')
-        mock.log_exception = MagicMock(name='log_exception')
+        mock.log = MagicMock(name="log")
+        mock.log_exception = MagicMock(name="log_exception")
         return mock
 
     @pytest.fixture
     def handler(self, logfile):
         handler = LoggingUtilHandler(logfile)
         handler.setLevel(logging.INFO)
-        handler.formatter = logging.Formatter()  # Set formatter to avoid NoneType errors
+        handler.formatter = (
+            logging.Formatter()
+        )  # Set formatter to avoid NoneType errors
         return handler
 
     @pytest.fixture
@@ -57,7 +61,7 @@ class TestLoggingUtilHandler:
         """Test logging with extra context"""
         extra_data = {"user_id": "123"}
         logger.info("Test message", extra=extra_data)
-        
+
         logfile.log.assert_called_once()
         call_args = logfile.log.call_args
         assert call_args.args[0]["user_id"] == "123"
@@ -77,11 +81,7 @@ class TestLoggingUtilHandler:
 
     def test_structured_logging(self, logger, logfile):
         """Test structured logging with multiple fields"""
-        extra_data = {
-            "user_id": "123",
-            "ip_address": "127.0.0.1",
-            "action": "login"
-        }
+        extra_data = {"user_id": "123", "ip_address": "127.0.0.1", "action": "login"}
         logger.info("User logged in", extra=extra_data)
 
         logfile.log.assert_called_once()
@@ -119,7 +119,7 @@ class TestLoggingUtilHandler:
     def test_context_handling(self, logger, logfile):
         """Test handling of logging context"""
         logger.info("Test message", extra={"request_id": "abc123"})
-        
+
         # Verify context was used
         logfile.context.assert_called_once()
-        assert "request_id" in logfile.context.call_args.kwargs 
+        assert "request_id" in logfile.context.call_args.kwargs

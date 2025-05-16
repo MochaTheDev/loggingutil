@@ -5,8 +5,10 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 from enum import IntEnum
 
+
 class LogLevel(IntEnum):
     """Enum for log levels with proper ordering."""
+
     TRACE = 10
     DEBUG = 20
     INFO = 30
@@ -22,6 +24,7 @@ class LogLevel(IntEnum):
 
     def __str__(self):
         return self.name
+
 
 class LogConfig:
     """Configuration manager for LoggingUtil.
@@ -70,27 +73,45 @@ class LogConfig:
 
         # Validate mode
         if self.config["mode"] not in self.VALID_MODES:
-            raise ValueError(f"Invalid mode: {self.config['mode']}. Must be one of {self.VALID_MODES}")
+            raise ValueError(
+                f"Invalid mode: {self.config['mode']}. Must be one of {self.VALID_MODES}"
+            )
 
         # Validate level
         if self.config["level"] not in self.VALID_LEVELS:
-            raise ValueError(f"Invalid level: {self.config['level']}. Must be one of {self.VALID_LEVELS}")
+            raise ValueError(
+                f"Invalid level: {self.config['level']}. Must be one of {self.VALID_LEVELS}"
+            )
 
         # Validate rotate_time
         if self.config["rotate_time"] not in self.VALID_ROTATE_TIMES:
-            raise ValueError(f"Invalid rotate_time: {self.config['rotate_time']}. Must be one of {self.VALID_ROTATE_TIMES}")
+            raise ValueError(
+                f"Invalid rotate_time: {self.config['rotate_time']}. Must be one of {self.VALID_ROTATE_TIMES}"
+            )
 
         # Validate numeric fields
-        if not isinstance(self.config["max_size_mb"], (int, float)) or self.config["max_size_mb"] <= 0:
+        if (
+            not isinstance(self.config["max_size_mb"], (int, float))
+            or self.config["max_size_mb"] <= 0
+        ):
             raise ValueError("max_size_mb must be a positive number")
 
-        if not isinstance(self.config["keep_days"], int) or self.config["keep_days"] <= 0:
+        if (
+            not isinstance(self.config["keep_days"], int)
+            or self.config["keep_days"] <= 0
+        ):
             raise ValueError("keep_days must be a positive integer")
 
-        if not isinstance(self.config["sampling_rate"], float) or not 0 <= self.config["sampling_rate"] <= 1:
+        if (
+            not isinstance(self.config["sampling_rate"], float)
+            or not 0 <= self.config["sampling_rate"] <= 1
+        ):
             raise ValueError("sampling_rate must be a float between 0 and 1")
 
-        if not isinstance(self.config["batch_size"], int) or self.config["batch_size"] <= 0:
+        if (
+            not isinstance(self.config["batch_size"], int)
+            or self.config["batch_size"] <= 0
+        ):
             raise ValueError("batch_size must be a positive integer")
 
         # Validate boolean fields

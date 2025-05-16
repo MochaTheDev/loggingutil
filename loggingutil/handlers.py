@@ -42,7 +42,9 @@ class SQLiteHandler(BaseHandler):
             c.execute(
                 "INSERT INTO logs VALUES (?, ?, ?, ?, ?)",
                 (
-                    log_entry.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                    log_entry.get(
+                        "timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    ),
                     log_entry.get("level", "INFO"),
                     log_entry.get("tag"),
                     log_entry.get("correlation_id"),
@@ -250,10 +252,10 @@ class ConsoleHandler(BaseHandler):
 
     COLORS = {
         "DEBUG": "\033[36m",  # Cyan
-        "INFO": "\033[32m",   # Green
-        "WARNING": "\033[33m", # Yellow
+        "INFO": "\033[32m",  # Green
+        "WARNING": "\033[33m",  # Yellow
         "ERROR": "\033[31m",  # Red
-        "CRITICAL": "\033[31;1m", # Bold Red
+        "CRITICAL": "\033[31;1m",  # Bold Red
         "RESET": "\033[0m",
     }
 
@@ -262,7 +264,9 @@ class ConsoleHandler(BaseHandler):
         self.format = format
 
     async def handle(self, log_entry: dict):
-        timestamp = log_entry.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        timestamp = log_entry.get(
+            "timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
         level = log_entry.get("level", "INFO")
         data = log_entry.get("data", "")
         tag = log_entry.get("tag", "")

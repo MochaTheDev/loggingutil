@@ -45,38 +45,46 @@ class TestRegexFilter(unittest.TestCase):
         """Test regex pattern matching"""
         # Test matching patterns
         self.assertTrue(
-            self.filter.filter({
-                "message": "This is an error message",
-                "user_id": "123",
-            })
+            self.filter.filter(
+                {
+                    "message": "This is an error message",
+                    "user_id": "123",
+                }
+            )
         )
 
         # Test non-matching patterns
         self.assertFalse(
-            self.filter.filter({
-                "message": "This is a success message",
-                "user_id": "abc",
-            })
+            self.filter.filter(
+                {
+                    "message": "This is a success message",
+                    "user_id": "abc",
+                }
+            )
         )
 
     def test_match_all_mode(self):
         """Test match_all mode"""
         filter_all = RegexFilter(self.patterns, match_all=True)
-        
+
         # Should match both patterns
         self.assertTrue(
-            filter_all.filter({
-                "message": "This is an error message",
-                "user_id": "123",
-            })
+            filter_all.filter(
+                {
+                    "message": "This is an error message",
+                    "user_id": "123",
+                }
+            )
         )
 
         # Should not match (only matches one pattern)
         self.assertFalse(
-            filter_all.filter({
-                "message": "This is an error message",
-                "user_id": "abc",
-            })
+            filter_all.filter(
+                {
+                    "message": "This is an error message",
+                    "user_id": "abc",
+                }
+            )
         )
 
 
@@ -95,7 +103,7 @@ class TestRateLimitFilter(unittest.TestCase):
         # First two logs should pass
         self.assertTrue(self.filter.filter(log_entry))
         self.assertTrue(self.filter.filter(log_entry))
-        
+
         # Third log should be blocked
         self.assertFalse(self.filter.filter(log_entry))
 
@@ -106,10 +114,10 @@ class TestRateLimitFilter(unittest.TestCase):
         # Fill up the limit
         self.assertTrue(self.filter.filter(log_entry))
         self.assertTrue(self.filter.filter(log_entry))
-        
+
         # Wait for window to expire
         sleep(1.1)
-        
+
         # Should allow new logs
         self.assertTrue(self.filter.filter(log_entry))
 
@@ -131,7 +139,7 @@ class TestDuplicateFilter(unittest.TestCase):
 
         # First occurrence should pass
         self.assertTrue(self.filter.filter(log_entry))
-        
+
         # Duplicate should be blocked
         self.assertFalse(self.filter.filter(log_entry))
 
@@ -139,26 +147,32 @@ class TestDuplicateFilter(unittest.TestCase):
         """Test logs with different field values"""
         # First log
         self.assertTrue(
-            self.filter.filter({
-                "error_type": "ValueError",
-                "user_id": "123",
-            })
+            self.filter.filter(
+                {
+                    "error_type": "ValueError",
+                    "user_id": "123",
+                }
+            )
         )
 
         # Different error type should pass
         self.assertTrue(
-            self.filter.filter({
-                "error_type": "TypeError",
-                "user_id": "123",
-            })
+            self.filter.filter(
+                {
+                    "error_type": "TypeError",
+                    "user_id": "123",
+                }
+            )
         )
 
         # Different user should pass
         self.assertTrue(
-            self.filter.filter({
-                "error_type": "ValueError",
-                "user_id": "456",
-            })
+            self.filter.filter(
+                {
+                    "error_type": "ValueError",
+                    "user_id": "456",
+                }
+            )
         )
 
 
@@ -174,22 +188,26 @@ class TestContextFilter(unittest.TestCase):
         """Test context-based filtering"""
         # Should match all rules
         self.assertTrue(
-            self.filter.filter({
-                "context": {
-                    "env": "prod",
-                    "user_id": "admin123",
+            self.filter.filter(
+                {
+                    "context": {
+                        "env": "prod",
+                        "user_id": "admin123",
+                    }
                 }
-            })
+            )
         )
 
         # Should not match (wrong environment)
         self.assertFalse(
-            self.filter.filter({
-                "context": {
-                    "env": "dev",
-                    "user_id": "admin123",
+            self.filter.filter(
+                {
+                    "context": {
+                        "env": "dev",
+                        "user_id": "admin123",
+                    }
                 }
-            })
+            )
         )
 
     def test_missing_context(self):
@@ -223,21 +241,15 @@ class TestSamplingFilter(unittest.TestCase):
         error_entry = {"level": "ERROR"}
 
         # Test multiple logs to verify sampling rates
-        debug_passed = sum(
-            1 for _ in range(100) if self.filter.filter(debug_entry)
-        )
-        info_passed = sum(
-            1 for _ in range(100) if self.filter.filter(info_entry)
-        )
-        error_passed = sum(
-            1 for _ in range(100) if self.filter.filter(error_entry)
-        )
+        debug_passed = sum(1 for _ in range(100) if self.filter.filter(debug_entry))
+        info_passed = sum(1 for _ in range(100) if self.filter.filter(info_entry))
+        error_passed = sum(1 for _ in range(100) if self.filter.filter(error_entry))
 
         # Check if sampling rates are roughly correct
         self.assertGreater(debug_passed, 30)  # ~50%
         self.assertLess(debug_passed, 70)
-        
-        self.assertGreater(info_passed, 60)   # ~80%
+
+        self.assertGreater(info_passed, 60)  # ~80%
         self.assertLess(info_passed, 90)
-        
-        self.assertEqual(error_passed, 100)    # 100% (no rule) 
+
+        self.assertEqual(error_passed, 100)  # 100% (no rule)
