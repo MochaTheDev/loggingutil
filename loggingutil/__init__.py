@@ -7,12 +7,20 @@ import random
 import threading
 import traceback
 import uuid
+import warnings
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from enum import auto
 from typing import Any, Callable, Dict, List, Optional
 
 from .config import LogLevel
+
+def _warn_future_change(message: str):
+    warnings.warn(
+        f"{message} This will change in version 2.0.0.",
+        DeprecationWarning,
+        stacklevel=2
+    )
 
 # LEVEL CLASS
 
@@ -102,6 +110,14 @@ class LogFile:
         sanitize_keys: List[str] = None,
         schema_validation: bool = False,
     ):
+        if custom_formatter:
+            _warn_future_change("Custom formatter API will be enhanced with additional context parameters.")
+        
+        if not rotate_time and max_size_mb > 0:
+            _warn_future_change("Default log rotation behavior will be changed to prefer time-based rotation.")
+
+        if not sanitize_keys:
+            _warn_future_change("Default sensitive data protection will be enhanced in future versions.")
 
         self.filename = filename
         self.verbose = verbose
@@ -248,9 +264,8 @@ class LogFile:
 
     def structured(self, **kwargs):
         """Log structured data with schema validation"""
-        if self.schema_validation:
-            # Add schema validation logic here
-            pass
+        if not self.schema_validation:
+            _warn_future_change("Schema validation will be enabled by default for structured logging.")
         self.log(kwargs)
 
     def _print(self, msg):
@@ -371,12 +386,9 @@ class LogFile:
     def log(self, data: Any, level: LogLevel = None, tag: str = None):
         """Enhanced log method with filtering and metrics"""
         if level is None:
-            level = self.level
+            _warn_future_change("Default log level behavior will be more strict. Please specify a level explicitly.")
         elif isinstance(level, str):
-            try:
-                level = LogLevel[level.upper()]
-            except (KeyError, AttributeError):
-                level = self.level
+            _warn_future_change("Using string log levels will be deprecated. Please use LogLevel enum.")
 
         if not self.should_sample():
             return

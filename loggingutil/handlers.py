@@ -2,6 +2,7 @@ import json
 import os
 import smtplib
 import sqlite3
+import warnings
 from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
@@ -9,6 +10,12 @@ from typing import List, Optional
 
 import aiohttp
 
+def _warn_future_change(message: str):
+    warnings.warn(
+        f"{message} This will change in version 2.0.0.",
+        DeprecationWarning,
+        stacklevel=2
+    )
 
 class BaseHandler:
     """Base class for all handlers with common functionality."""
@@ -21,6 +28,7 @@ class SQLiteHandler(BaseHandler):
     """Handler that stores logs in SQLite database."""
 
     def __init__(self, db_path: str = "logs.db"):
+        _warn_future_change("SQLite schema will be enhanced with additional indexing and metadata columns")
         self.db_path = db_path
         self._init_db()
 
@@ -61,6 +69,7 @@ class WebhookHandler(BaseHandler):
     """Handler that sends logs to a webhook URL."""
 
     def __init__(self, webhook_url: str, batch_size: int = 10):
+        _warn_future_change("Webhook handler will support additional retry and authentication options")
         self.webhook_url = webhook_url
         self.batch_size = batch_size
         self.batch: List[dict] = []
@@ -128,6 +137,7 @@ class FileRotatingHandler(BaseHandler):
         rotate_by: str = "date",  # or "tag"
         max_files: int = 30,
     ):
+        _warn_future_change("File rotation strategy will be enhanced with more granular controls")
         self.base_dir = Path(base_dir)
         self.rotate_by = rotate_by
         self.max_files = max_files
