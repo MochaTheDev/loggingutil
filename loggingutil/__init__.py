@@ -1,17 +1,17 @@
 # DEPENDENCIES
-import os
-import gzip
-import json
-import uuid
 import asyncio
+import gzip
 import inspect
-import traceback
-import threading
+import json
+import os
 import random
-from datetime import datetime, timedelta
-from typing import Union, Callable, Optional, Dict, Any, List
-from enum import Enum, auto
+import threading
+import traceback
+import uuid
 from contextlib import contextmanager
+from datetime import datetime, timedelta
+from enum import Enum, auto
+from typing import Any, Callable, Dict, List, Optional, Union
 
 # LEVEL CLASS
 

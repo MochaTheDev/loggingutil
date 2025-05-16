@@ -1,11 +1,12 @@
-import os
-import sys
 import json
-import click
+import os
 import sqlite3
-from pathlib import Path
+import sys
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import click
 
 from .config import LogConfig
 

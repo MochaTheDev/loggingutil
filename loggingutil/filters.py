@@ -1,6 +1,6 @@
 import re
-from typing import List, Dict, Any, Optional, Pattern
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Pattern
 
 
 class BaseFilter:
