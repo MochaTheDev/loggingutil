@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="loggingutil",
-    version="1.2.3",
+    version="2.0.0",
     author="Mocha",
     author_email="ohplot@gmail.com",
     description=("A powerful logging utility that surpasses the standard library"),
