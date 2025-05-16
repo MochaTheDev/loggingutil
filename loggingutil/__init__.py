@@ -399,10 +399,15 @@ class LogFile:
             _warn_future_change(
                 "Default log level behavior will be more strict. Please specify a level explicitly."
             )
+            level = self.level
         elif isinstance(level, str):
             _warn_future_change(
                 "Using string log levels will be deprecated. Please use LogLevel enum."
             )
+            try:
+                level = LogLevel[level.upper()]
+            except (KeyError, AttributeError):
+                level = self.level
 
         if not self.should_sample():
             return
