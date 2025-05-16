@@ -1,9 +1,8 @@
-import json
 import os
+import yaml
+import json
 from pathlib import Path
 from typing import Any, Dict, Optional
-
-import yaml
 
 
 class LogConfig:

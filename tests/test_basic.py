@@ -1,9 +1,9 @@
-import json
-import os
 import unittest
+import os
+import json
 from datetime import datetime
 
-from loggingutil import LogContext, LogFile, LogLevel
+from loggingutil import LogFile, LogLevel
 
 
 class TestLoggingUtil(unittest.TestCase):

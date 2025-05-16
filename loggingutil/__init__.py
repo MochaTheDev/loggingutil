@@ -1,5 +1,4 @@
 # DEPENDENCIES
-import asyncio
 import gzip
 import inspect
 import json
@@ -11,7 +10,7 @@ import uuid
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 
 # LEVEL CLASS
 
@@ -165,9 +164,12 @@ class LogFile:
         """Add a custom log filter"""
         self.filters.append(log_filter)
 
-    def _should_sample(self) -> bool:
-        """Determine if this log entry should be sampled"""
-        return self.sampling_rate >= 1.0 or random.random() < self.sampling_rate
+    def should_sample(self) -> bool:
+        """Check if this log entry should be sampled."""
+        return (
+            self.sampling_rate >= 1.0
+            or random.random() < self.sampling_rate
+        )
 
     def _sanitize_data(self, data: Any) -> Any:
         """Recursively sanitize sensitive data"""
@@ -197,35 +199,19 @@ class LogFile:
                 }
         return {}
 
-    def _format_entry(
-        self, data: Any, tag: Optional[str], level: LogLevel = None
+    def format_log_entry(
+        self,
+        timestamp: str,
+        level: LogLevel,
+        tag: str,
+        data: Any,
+        context_str: str,
     ) -> str:
-        """Enhanced log entry formatting with additional context"""
-        timestamp = self._get_timestamp()
-        level = level or self.level
-
-        log_entry = {
-            "timestamp": timestamp,
-            "level": level.name,
-            "correlation_id": self.correlation_id,
-            "tag": tag,
-            "data": self._sanitize_data(data),
-            "context": LogContext.get_context(),
-            "caller": self._get_caller_info(),
-            "process_id": os.getpid(),
-            "thread_id": threading.get_ident(),
-        }
-
-        if self.custom_formatter:
-            return self.custom_formatter(log_entry)
-
-        if self.mode == "json":
-            return json.dumps(log_entry) + "\n"
-        else:
-            context_str = " ".join(
-                f"{k}={v}" for k, v in LogContext.get_context().items()
-            )
-            return f"{timestamp} [{level.name}] [{self.correlation_id}] {tag or ''} {context_str} {data}\n"
+        """Format a log entry as a string."""
+        return (
+            f"{timestamp} [{level.name}] [{self.correlation_id}] "
+            f"{tag or ''} {context_str} {data}\n"
+        )
 
     async def _handle_async(self, entry: dict):
         """Process log entry through async handlers"""
@@ -277,8 +263,13 @@ class LogFile:
                 f.write("LoggingUtility::LOGFILE_INIT\n")
             self._print(f"Created new log file: {self.filename}")
 
-    def setLevel(self, level):
-        """Sets default output level (used if no level passed to .log()) Example:\nsetLevel(logfile = loggingutil.LogFile(); logfile.setLevel(logfile.notice))"""
+    def setLevel(self, level: LogLevel) -> None:
+        """Sets default output level (used if no level passed to .log())
+        
+        Example:
+        logfile = loggingutil.LogFile()
+        logfile.setLevel(logfile.notice)
+        """
         if isinstance(level, LogLevel):
             self.level = level
 
@@ -374,7 +365,7 @@ class LogFile:
         if level is None:
             level = self.level
 
-        if not self._should_sample():
+        if not self.should_sample():
             return
 
         if not data:
@@ -392,7 +383,13 @@ class LogFile:
             if not log_filter.filter(log_entry):
                 return
 
-        entry = self._format_entry(data, tag=tag, level=level)
+        entry = self.format_log_entry(
+            self._get_timestamp(),
+            level,
+            tag,
+            self._sanitize_data(data),
+            " ".join(f"{k}={v}" for k, v in LogContext.get_context().items())
+        )
         self.buffer.append(entry)
         self.metrics.record_log(level)
 
@@ -473,3 +470,30 @@ class LogFile:
 
     def __str__(self):
         return f"LogFile({self.filename})"
+
+    def increment_error_count(self, error_type: str) -> None:
+        """Increment error count for a specific error type."""
+        self.metrics.record_error(error_type)
+
+    def _parse_timestamp(self, timestamp_str: str) -> datetime:
+        """Parse timestamp from filename."""
+        file_time = datetime.strptime(
+            timestamp_str,
+            "%Y%m%d_%H%M%S"
+        )
+        return file_time
+
+    def _format_timestamp(self) -> str:
+        """Format current timestamp."""
+        now = datetime.now()
+        return (
+            now.strftime(self.timestamp_format)
+            if self.include_timestamp
+            else ""
+        )
+
+    def _process_batch(self, entries: List[dict], batch_size: int = 100):
+        """Process a batch of log entries."""
+        for i in range(0, len(entries), batch_size):
+            batch = entries[i:i + batch_size]
+            # ... rest of the method

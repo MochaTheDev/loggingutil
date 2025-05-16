@@ -8,7 +8,9 @@ setup(
     version="1.2.3",
     author="Mocha",
     author_email="ohplot@gmail.com",
-    description="A powerful logging utility that surpasses the standard library",
+    description=(
+        "A powerful logging utility that surpasses the standard library"
+    ),
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mochathehuman/loggingutil",
@@ -56,8 +58,10 @@ setup(
     },
     project_urls={
         "Bug Tracker": "https://github.com/mochathehuman/loggingutil/issues",
-        "Documentation": "https://github.com/mochathehuman/loggingutil/blob/main/README.md",
-        "Source Code": "https://github.com/mochathehuman/loggingutil",
+        "Source": "https://github.com/mochathehuman/loggingutil",
+        "Documentation": (
+            "https://github.com/mochathehuman/loggingutil/blob/main/README.md"
+        ),
     },
     keywords=[
         "logging",

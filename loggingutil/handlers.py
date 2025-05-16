@@ -1,4 +1,3 @@
-import asyncio
 import json
 import os
 import smtplib
@@ -6,7 +5,7 @@ import sqlite3
 from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import aiohttp
 
@@ -30,7 +29,7 @@ class SQLiteHandler(BaseHandler):
         c = conn.cursor()
         c.execute(
             """CREATE TABLE IF NOT EXISTS logs
-                    (timestamp TEXT, level TEXT, tag TEXT, 
+                    (timestamp TEXT, level TEXT, tag TEXT,
                      correlation_id TEXT, data TEXT)"""
         )
         conn.commit()
@@ -212,7 +211,10 @@ class ElasticsearchHandler(BaseHandler):
     """Handler that sends logs to Elasticsearch."""
 
     def __init__(
-        self, es_url: str, index_prefix: str = "logs", auth: Optional[tuple] = None
+        self,
+        es_url: str,
+        index_prefix: str = "logs",
+        auth: Optional[tuple] = None
     ):
         self.es_url = es_url
         self.index_prefix = index_prefix
@@ -227,7 +229,11 @@ class ElasticsearchHandler(BaseHandler):
 
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.post(url, json=log_entry, auth=self.auth) as resp:
+                async with session.post(
+                    url,
+                    json=log_entry,
+                    auth=self.auth
+                ) as resp:
                     if resp.status >= 400:
                         print(f"Elasticsearch error: {resp.status}")
             except Exception as e:
@@ -240,9 +246,9 @@ class ConsoleHandler(BaseHandler):
     COLORS = {
         "TRACE": "\033[37m",  # white
         "DEBUG": "\033[36m",  # cyan
-        "INFO": "\033[32m",  # green
-        "NOTICE": "\033[34m",  # blue
-        "WARN": "\033[33m",  # yellow
+        "INFO": "\033[32m",   # green
+        "NOTICE": "\033[34m", # blue
+        "WARN": "\033[33m",   # yellow
         "ERROR": "\033[31m",  # red
         "FATAL": "\033[35m",  # magenta
         "RESET": "\033[0m",

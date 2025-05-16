@@ -1,8 +1,7 @@
-import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Dict, Any
 
-from loggingutil import LogContext, LogLevel
+from loggingutil import LogLevel
 
 
 class LoggingUtilHandler(logging.Handler):
