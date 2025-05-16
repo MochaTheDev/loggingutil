@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.3] - 2024-03-21
+## [1.2.3] - 05-15-25
 
 ### Added
 - Comprehensive handler implementations (Console, SQLite, Webhook, Email, File, CloudWatch, Elasticsearch)
