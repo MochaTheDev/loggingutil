@@ -1,6 +1,6 @@
 # LoggingUtil
 
-[![PyPI version](https://badge.fury.io/py/loggingutil.svg)](https://badge.fury.io/py/loggingutil)
+![PyPI](https://img.shields.io/pypi/v/loggingutil.svg?cache=clear)
 [![Tests](https://github.com/mochathehuman/loggingutil/actions/workflows/tests.yml/badge.svg)](https://github.com/mochathehuman/loggingutil/actions/workflows/tests.yml)
 [![Python Versions](https://img.shields.io/pypi/pyversions/loggingutil)](https://pypi.org/project/loggingutil)
 [![License](https://img.shields.io/github/license/mochathehuman/loggingutil)](https://github.com/mochathehuman/loggingutil/blob/main/LICENSE)
