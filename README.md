@@ -2,7 +2,6 @@
 
 [![PyPI version](https://badge.fury.io/py/loggingutil.svg)](https://badge.fury.io/py/loggingutil)
 [![Tests](https://github.com/mochathehuman/loggingutil/actions/workflows/tests.yml/badge.svg)](https://github.com/mochathehuman/loggingutil/actions/workflows/tests.yml)
-[![codecov](https://codecov.io/gh/mochathehuman/loggingutil/branch/main/graph/badge.svg)](https://codecov.io/gh/mochathehuman/loggingutil)
 [![Python Versions](https://img.shields.io/pypi/pyversions/loggingutil)](https://pypi.org/project/loggingutil)
 [![License](https://img.shields.io/github/license/mochathehuman/loggingutil)](https://github.com/mochathehuman/loggingutil/blob/main/LICENSE)
 [![Downloads](https://pepy.tech/badge/loggingutil)](https://pepy.tech/project/loggingutil)
