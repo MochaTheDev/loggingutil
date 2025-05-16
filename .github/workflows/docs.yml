@@ -28,6 +28,8 @@ jobs:
                       mkdocstrings-python \
                       mkdocs-autorefs \
                       pymdown-extensions
+          # Install the package in development mode
+          pip install -e .
       
       - name: Build documentation
         run: mkdocs build
