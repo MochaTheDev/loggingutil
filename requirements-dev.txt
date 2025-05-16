@@ -21,7 +21,6 @@ twine>=4.0.0
 
 # Type Checking
 types-PyYAML>=6.0.0
-types-aiohttp==3.0.0
 types-setuptools>=67.0.0
 types-requests>=2.31.0
 types-boto3>=1.0.0 
